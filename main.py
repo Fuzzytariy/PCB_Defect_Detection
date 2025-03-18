@@ -15,22 +15,34 @@ def extract_barcode_and_position_from_txt_filename(txt_filename):
     barcode_and_position, _, _ = base_name.rsplit('_', 2)
     return barcode_and_position
 
+
 def parse_txt_file(txt_file_path):
     """
     读取 TXT 文件内容，提取 ModelName 和 ConfirmedResult
     """
     model_name = "未知产品号"
     confirmed_result = "未知复检结果"
-
-    with open(txt_file_path, 'r', encoding='utf-8') as file:
-        for line in file:
-            line = line.strip()
-            if line.startswith("ModelName:"):
-                model_name = line.split(":", 1)[1].strip()
-            elif line.startswith("ConfirmedResult:"):
-                confirmed_result = line.split(":", 1)[1].strip()
+    #读取时可能还没有写入完成出现permissionerror
+    max_retries = 5#最多重试5次
+    for attempt in range(max_retries):
+        try:
+            with open(txt_file_path, 'r', encoding='utf-8') as file:
+                for line in file:
+                    line = line.strip()
+                    if line.startswith("ModelName:"):
+                        model_name = line.split(":", 1)[1].strip()
+                    elif line.startswith("ConfirmedResult:"):
+                        confirmed_result = line.split(":", 1)[1].strip()
+            break  # 读取成功，跳出循环
+        except PermissionError:
+            print(f"读取 {txt_file_path} 权限错误，等待重试({attempt + 1}/{max_retries})...")
+            time.sleep(0.5)  # 等待0.5秒后重试
+    else:
+        # 重试多次后仍然失败，可以选择记录日志或采取其他处理措施
+        print(f"无法读取文件 {txt_file_path}，请检查文件状态或权限。")
 
     return model_name, confirmed_result
+
 
 def find_image_for_barcode_and_position(directory_images, barcode_and_position):
     """
@@ -152,10 +164,13 @@ def worker(event_queue, directory_images, output_base_dir):
         event_queue.task_done()
 
 if __name__ == "__main__":
-    # 配置目录路径
-    folder_to_monitor_txt = r'C:\Users\Administrator\Desktop\新建文件夹\txt标注'
-    directory_images = r'C:\Users\Administrator\Desktop\新建文件夹\数据文档'
-    output_base_dir = r'C:\Users\Administrator\Desktop\新建文件夹\test'
+    # 获取当前脚本所在的目录
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 配置目录路径，使用相对路径（基于脚本所在目录）
+    folder_to_monitor_txt = os.path.join(base_dir, 'txt标注')
+    directory_images = os.path.join(base_dir, '图片数据')
+    output_base_dir = os.path.join(base_dir, 'output')
 
     # 创建线程安全的队列
     event_queue = queue.Queue()
