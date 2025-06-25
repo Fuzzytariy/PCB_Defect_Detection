@@ -19,6 +19,7 @@ DOWNLOAD_INFO = DownloadInfo(
 )
 
 
+
 class MVTecAD(AnomalibDataModule):
 
 
