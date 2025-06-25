@@ -1,10 +1,13 @@
-import os
-import shutil
-import random
-import time
 import logging
-from watchdog.observers import Observer
+import os
+import random
+import shutil
+import time
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
+# 导入训练任务管理器
+from 训练任务管理器 import add_training_task, get_queue_status
 
 
 def organize_data(source_dir, dest_dir, product_component, seed=None):
@@ -80,8 +83,8 @@ def organize_data(source_dir, dest_dir, product_component, seed=None):
 
     logging.info(
         f"整理完成【{product_component}】：训练集 OK {len(train_ok)}张，测试集 OK {len(test_ok)}张，测试集 NG {len(test_ng)}张")
-    return {"train_OK": len(train_ok), "test_OK": len(test_ok), "test_NG": len(test_ng)}
 
+    return {"train_OK": len(train_ok), "test_OK": len(test_ok), "test_NG": len(test_ng)}
 
 
 class ProductFolderHandler(FileSystemEventHandler):
@@ -130,11 +133,33 @@ class ProductFolderHandler(FileSystemEventHandler):
             try:
                 # 调用数据整理函数
                 stats = organize_data(product_component_path, self.dest_dir, product_component, self.seed)
+
                 # 更新内存和记录文件
                 self.processed.add(product_component)
                 with open(self.processed_file, 'a', encoding='utf-8') as f:
                     f.write(product_component + "\n")
+
                 logging.info(f"【{product_component}】处理成功，并记录在 {self.processed_file} 中")
+
+                # 数据整理完成后，添加训练任务到队列
+                data_root = os.path.join(self.dest_dir, product_component)
+                task_id = add_training_task(
+                    name=product_component,
+                    root=data_root,
+                    backbone="resnet18",
+                    layers=['layer1', 'layer2', 'layer3'],
+                    coreset_sampling_ratio=0.1,
+                    num_neighbors=9
+                )
+
+                logging.info(f"【{product_component}】训练任务已添加到队列，任务ID: {task_id}")
+
+                # 打印当前队列状态
+                queue_status = get_queue_status()
+                logging.info(f"当前训练队列状态: 等待任务数={queue_status['queue_size']}")
+                if queue_status['current_task']:
+                    logging.info(f"正在执行任务: {queue_status['current_task']['name']}")
+
             except Exception as e:
                 logging.error(f"【{product_component}】处理失败：{e}")
         else:
@@ -155,7 +180,6 @@ class ProductFolderHandler(FileSystemEventHandler):
             self.process_folder(product_component)
 
 
-
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -174,6 +198,7 @@ if __name__ == "__main__":
     observer.schedule(event_handler, path=source_parent_dir, recursive=True)
     observer.start()
     logging.info("启动 watchdog 监听器，等待文件变化触发处理...")
+    logging.info("训练任务管理器已启动，所有训练任务将串行执行")
 
     try:
         while True:

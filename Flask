@@ -1,0 +1,485 @@
+# Flask训练任务管理API使用文档
+
+## 概述
+
+基于Flask的训练任务管理Web API，集成anomalib框架和Patchcore算法，提供完整的训练任务管理功能。
+
+## 快速开始
+
+### 1. 安装依赖
+
+\`\`\`bash
+pip install -r requirements.txt
+\`\`\`
+
+### 2. 启动服务
+
+\`\`\`bash
+# 启动所有服务（API + 文件监听）
+python 启动服务.py
+
+# 仅启动API服务
+python 启动服务.py --api-only
+
+# 仅启动文件监听服务
+python 启动服务.py --monitor-only
+
+# 自定义端口
+python 启动服务.py --port 8080
+
+# 调试模式
+python 启动服务.py --debug
+\`\`\`
+
+### 3. 访问API
+
+- **API文档**: http://localhost:5000
+- **健康检查**: http://localhost:5000/api/health
+
+## API接口详情
+
+### 1. 健康检查
+
+**GET** `/api/health`
+
+检查API服务状态。
+
+**响应示例:**
+\`\`\`json
+{
+  "status": "healthy",
+  "timestamp": "2024-12-25T12:00:00",
+  "service": "训练任务管理API",
+  "version": "1.0.0"
+}
+\`\`\`
+
+### 2. 创建训练任务
+
+**POST** `/api/train`
+
+添加新的训练任务到队列。
+
+**请求体:**
+\`\`\`json
+{
+  "name": "我的训练任务",
+  "root": "/path/to/data",
+  "backbone": "resnet18",
+  "layers": ["layer1", "layer2", "layer3"],
+  "coreset_sampling_ratio": 0.1,
+  "num_neighbors": 9
+}
+\`\`\`
+
+**参数说明:**
+- `name` (必需): 任务名称
+- `root` (必需): 数据目录路径
+- `backbone` (可选): 骨干网络，默认"resnet18"
+- `layers` (可选): 特征层列表，默认["layer1", "layer2", "layer3"]
+- `coreset_sampling_ratio` (可选): 核心集采样比例，默认0.1
+- `num_neighbors` (可选): 邻居数量，默认9
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "message": "训练任务已添加成功",
+  "task_id": "task_20241225_120000_0001",
+  "task_name": "我的训练任务",
+  "queue_status": {
+    "queue_size": 2,
+    "current_task": "其他任务"
+  }
+}
+\`\`\`
+
+### 3. 获取队列状态
+
+**GET** `/api/queue`
+
+获取当前训练队列状态。
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "queue_size": 3,
+    "current_task": {
+      "task_id": "task_20241225_120000_0001",
+      "name": "正在执行的任务",
+      "started_at": "2024-12-25T12:00:00"
+    },
+    "pending_tasks": [
+      {
+        "task_id": "task_20241225_120001_0002",
+        "name": "等待任务1",
+        "created_at": "2024-12-25T12:01:00"
+      }
+    ]
+  }
+}
+\`\`\`
+
+### 4. 获取所有任务
+
+**GET** `/api/tasks`
+
+获取所有任务列表，按状态分组。
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "tasks_by_status": {
+      "running": [
+        {
+          "task_id": "task_20241225_120000_0001",
+          "name": "正在执行的任务",
+          "root": "/path/to/data",
+          "backbone": "resnet18",
+          "status": "running",
+          "created_at": "2024-12-25T12:00:00",
+          "started_at": "2024-12-25T12:00:30",
+          "completed_at": null,
+          "error_message": null
+        }
+      ],
+      "pending": [],
+      "completed": [],
+      "failed": [],
+      "cancelled": []
+    },
+    "total_count": 1
+  }
+}
+\`\`\`
+
+### 5. 获取任务详情
+
+**GET** `/api/task/<task_id>`
+
+获取特定任务的详细信息。
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "task_id": "task_20241225_120000_0001",
+    "name": "我的训练任务",
+    "root": "/path/to/data",
+    "status": "completed",
+    "created_at": "2024-12-25T12:00:00",
+    "started_at": "2024-12-25T12:00:30",
+    "completed_at": "2024-12-25T12:15:45",
+    "error_message": null
+  }
+}
+\`\`\`
+
+### 6. 取消任务
+
+**DELETE** `/api/task/<task_id>`
+
+取消等待中的任务（无法取消正在执行的任务）。
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "message": "任务 task_20241225_120000_0001 已取消"
+}
+\`\`\`
+
+### 7. 获取配置模板
+
+**GET** `/api/config/template`
+
+获取训练配置模板和可选参数。
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "template": {
+      "name": "示例训练任务",
+      "root": "/path/to/your/data",
+      "backbone": "resnet18",
+      "layers": ["layer1", "layer2", "layer3"],
+      "coreset_sampling_ratio": 0.1,
+      "num_neighbors": 9
+    },
+    "options": {
+      "backbones": ["resnet18", "resnet34", "resnet50", "wide_resnet50_2"],
+      "layers": ["layer1", "layer2", "layer3", "layer4"],
+      "coreset_sampling_ratio_range": [0.01, 1.0],
+      "num_neighbors_range": [1, 50]
+    }
+  }
+}
+\`\`\`
+
+### 8. 获取统计信息
+
+**GET** `/api/stats`
+
+获取任务统计信息。
+
+**响应示例:**
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "total_tasks": 10,
+    "by_status": {
+      "completed": 7,
+      "failed": 1,
+      "running": 1,
+      "pending": 1
+    },
+    "recent_tasks": [
+      {
+        "task_id": "task_20241225_120000_0001",
+        "name": "最新任务",
+        "status": "running",
+        "created_at": "2024-12-25T12:00:00"
+      }
+    ]
+  }
+}
+\`\`\`
+
+## 使用示例
+
+### Python客户端
+
+\`\`\`python
+import requests
+import json
+
+# 创建训练任务
+config = {
+    "name": "PCB缺陷检测训练",
+    "root": "/data/pcb_dataset",
+    "backbone": "resnet18",
+    "layers": ["layer1", "layer2", "layer3"],
+    "coreset_sampling_ratio": 0.1,
+    "num_neighbors": 9
+}
+
+response = requests.post(
+    "http://localhost:5000/api/train",
+    json=config,
+    headers={"Content-Type": "application/json"}
+)
+
+result = response.json()
+if result["success"]:
+    task_id = result["task_id"]
+    print(f"任务创建成功: {task_id}")
+else:
+    print(f"任务创建失败: {result['error']}")
+\`\`\`
+
+### curl命令
+
+\`\`\`bash
+# 创建训练任务
+curl -X POST http://localhost:5000/api/train \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "测试任务",
+    "root": "/path/to/data",
+    "backbone": "resnet18"
+  }'
+
+# 获取队列状态
+curl http://localhost:5000/api/queue
+
+# 获取任务详情
+curl http://localhost:5000/api/task/task_20241225_120000_0001
+
+# 取消任务
+curl -X DELETE http://localhost:5000/api/task/task_20241225_120000_0001
+\`\`\`
+
+### JavaScript (前端)
+
+\`\`\`javascript
+// 创建训练任务
+async function createTrainingTask() {
+    const config = {
+        name: "Web训练任务",
+        root: "/path/to/data",
+        backbone: "resnet18",
+        layers: ["layer1", "layer2", "layer3"]
+    };
+    
+    try {
+        const response = await fetch('/api/train', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(config)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('任务创建成功:', result.task_id);
+        } else {
+            console.error('任务创建失败:', result.error);
+        }
+    } catch (error) {
+        console.error('请求失败:', error);
+    }
+}
+
+// 获取队列状态
+async function getQueueStatus() {
+    try {
+        const response = await fetch('/api/queue');
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('队列状态:', result.data);
+        }
+    } catch (error) {
+        console.error('获取队列状态失败:', error);
+    }
+}
+\`\`\`
+
+## 数据目录结构
+
+训练数据必须按以下结构组织：
+
+\`\`\`
+数据目录/
+├── train/
+│   └── OK/              # 训练用正常样本
+│       ├── normal1.jpg
+│       ├── normal2.jpg
+│       └── ...
+└── test/
+    ├── OK/              # 测试用正常样本
+    │   ├── test_normal1.jpg
+    │   ├── test_normal2.jpg
+    │   └── ...
+    └── NG/              # 测试用异常样本
+        ├── defect1.jpg
+        ├── defect2.jpg
+        └── ...
+\`\`\`
+
+## 错误处理
+
+API使用标准HTTP状态码：
+
+- **200**: 请求成功
+- **400**: 请求参数错误
+- **404**: 资源不存在
+- **500**: 服务器内部错误
+
+错误响应格式：
+\`\`\`json
+{
+  "success": false,
+  "error": "错误描述",
+  "details": ["详细错误信息"]
+}
+\`\`\`
+
+## 配置参数详解
+
+### 骨干网络 (backbone)
+- `resnet18`: 轻量级，训练快速
+- `resnet34`: 中等复杂度
+- `resnet50`: 较高精度
+- `wide_resnet50_2`: 最高精度，训练较慢
+
+### 特征层 (layers)
+- `layer1`: 低级特征
+- `layer2`: 中级特征  
+- `layer3`: 高级特征
+- `layer4`: 最高级特征
+
+建议组合：
+- 快速训练: `["layer3"]`
+- 平衡性能: `["layer2", "layer3"]`
+- 最佳效果: `["layer1", "layer2", "layer3"]`
+
+### 核心集采样比例 (coreset_sampling_ratio)
+- 范围: 0.01 - 1.0
+- 较小值: 训练快速，可能精度略低
+- 较大值: 训练较慢，精度更高
+- 推荐: 0.1
+
+### 邻居数量 (num_neighbors)
+- 范围: 1 - 50
+- 影响异常检测的敏感度
+- 推荐: 9
+
+## 性能优化
+
+1. **合理选择骨干网络**: 根据精度要求选择
+2. **调整采样比例**: 大数据集可适当降低
+3. **特征层选择**: 根据数据复杂度选择
+4. **批量处理**: 使用批量API创建多个任务
+
+## 监控和调试
+
+1. **查看日志**: API服务会输出详细日志
+2. **队列监控**: 定期检查队列状态
+3. **任务状态**: 监控任务执行进度
+4. **错误处理**: 及时处理失败任务
+
+## 部署建议
+
+### 开发环境
+\`\`\`bash
+python 启动服务.py --debug
+\`\`\`
+
+### 生产环境
+\`\`\`bash
+# 使用gunicorn部署
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 训练API服务:app
+\`\`\`
+
+### Docker部署
+\`\`\`dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+EXPOSE 5000
+
+CMD ["python", "启动服务.py"]
+\`\`\`
+
+## 常见问题
+
+### Q: 如何处理大量并发请求？
+A: 使用gunicorn等WSGI服务器，配置多个worker进程。
+
+### Q: 训练任务失败怎么办？
+A: 检查日志，修复问题后重新提交任务。
+
+### Q: 如何备份任务数据？
+A: 使用`/api/stats`接口定期导出任务信息。
+
+### Q: 可以同时运行多个训练任务吗？
+A: 不可以，系统设计为串行执行以避免资源冲突。
+
+---
+
+更多问题请查看项目文档或联系开发团队。
