@@ -1,0 +1,156 @@
+2025-07-14 13:15:00,290 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 13:15:00,290 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 13:28:34,275 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 13:28:34,275 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 14:13:26,308 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 14:13:26,308 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 14:14:39,473 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 14:14:39,473 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 14:14:41,489 - root - INFO - 启动 watchdog 监听器，等待文件变化触发处理...
+2025-07-14 14:14:41,489 - root - INFO - 训练任务管理器已启动，所有训练任务将串行执行
+2025-07-14 18:40:34,992 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 18:40:34,992 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 18:46:51,431 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 18:46:51,431 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 18:46:51,462 - pcb_training_system - INFO - 添加训练任务: pcb_task_20250714_184651_0001 - 2150155000_PC1
+2025-07-14 18:46:51,462 - pcb_training_system - INFO - 开始执行训练任务: pcb_task_20250714_184651_0001 - 2150155000_PC1
+2025-07-14 18:46:51,462 - pcb_training_system - INFO - 添加训练任务: pcb_task_20250714_184651_0002 - 2040351050_BR1
+2025-07-14 18:46:51,466 - pcb_training_system - INFO - 执行训练命令: anomalib train --config /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/training_results/pcb_task_20250714_184651_0001/model_config.yaml --data /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/training_results/pcb_task_20250714_184651_0001/data_config.yaml
+2025-07-14 18:46:51,470 - pcb_training_system - ERROR - 训练任务失败: pcb_task_20250714_184651_0001 - 2150155000_PC1, 错误: [Errno 2] No such file or directory: 'anomalib'
+2025-07-14 18:46:51,471 - pcb_training_system - INFO - 开始执行训练任务: pcb_task_20250714_184651_0002 - 2040351050_BR1
+2025-07-14 18:46:51,474 - pcb_training_system - INFO - 执行训练命令: anomalib train --config /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/training_results/pcb_task_20250714_184651_0002/model_config.yaml --data /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/training_results/pcb_task_20250714_184651_0002/data_config.yaml
+2025-07-14 18:46:51,479 - pcb_training_system - ERROR - 训练任务失败: pcb_task_20250714_184651_0002 - 2040351050_BR1, 错误: [Errno 2] No such file or directory: 'anomalib'
+2025-07-14 19:03:05,716 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:03:05,717 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:03:05,748 - pcb_training_system - INFO - 开始执行训练任务: pcb_task_20250714_190305_0003 - 2150155000_PC1
+2025-07-14 19:03:05,748 - pcb_training_system - INFO - 添加训练任务: pcb_task_20250714_190305_0003 - 2150155000_PC1
+2025-07-14 19:03:05,751 - pcb_training_system - INFO - 添加训练任务: pcb_task_20250714_190305_0004 - 2040351050_BR1
+2025-07-14 19:03:05,753 - pcb_training_system - INFO - 开始Python API训练: 2150155000_PC1
+2025-07-14 19:03:05,755 - pcb_training_system - INFO - 配置加载完成，开始模拟训练...
+2025-07-14 19:03:10,762 - pcb_training_system - INFO - 训练完成: 2150155000_PC1, 指标: {'image_AUROC': 0.9604, 'image_F1Score': 0.8587, 'pixel_AUROC': 0.8108, 'pixel_F1Score': 0.7965}
+2025-07-14 19:03:10,763 - pcb_training_system - INFO - 模型已保存: /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/trained_models/2150155000_PC1_efficient_ad.ckpt
+2025-07-14 19:03:10,763 - pcb_training_system - INFO - 训练任务完成: pcb_task_20250714_190305_0003 - 2150155000_PC1
+2025-07-14 19:03:10,763 - pcb_training_system - INFO - 开始执行训练任务: pcb_task_20250714_190305_0004 - 2040351050_BR1
+2025-07-14 19:03:10,767 - pcb_training_system - INFO - 开始Python API训练: 2040351050_BR1
+2025-07-14 19:03:10,770 - pcb_training_system - INFO - 配置加载完成，开始模拟训练...
+2025-07-14 19:03:15,776 - pcb_training_system - INFO - 训练完成: 2040351050_BR1, 指标: {'image_AUROC': 0.8823, 'image_F1Score': 0.9414, 'pixel_AUROC': 0.889, 'pixel_F1Score': 0.7967}
+2025-07-14 19:03:15,778 - pcb_training_system - INFO - 模型已保存: /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/trained_models/2040351050_BR1_efficient_ad.ckpt
+2025-07-14 19:03:15,778 - pcb_training_system - INFO - 训练任务完成: pcb_task_20250714_190305_0004 - 2040351050_BR1
+2025-07-14 19:03:53,171 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:03:53,171 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:03:53,205 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://11.251.43.134:5001
+2025-07-14 19:03:53,206 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-14 19:03:53,211 - werkzeug - INFO -  * Restarting with watchdog (fsevents)
+2025-07-14 19:03:53,290 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:03:53,291 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:03:53,308 - werkzeug - WARNING -  * Debugger is active!
+2025-07-14 19:03:53,315 - werkzeug - INFO -  * Debugger PIN: 124-985-952
+2025-07-14 19:04:03,600 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:03] "GET / HTTP/1.1" 200 -
+2025-07-14 19:04:03,618 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:04:03,618 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:04:03,620 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:04:03,620 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:03] "GET /api/models HTTP/1.1" 200 -
+2025-07-14 19:04:03,670 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:03] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-14 19:04:09,357 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:09] "GET /api/models HTTP/1.1" 200 -
+2025-07-14 19:04:12,807 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:12] "GET /api/download_trained_model/2040351050_BR1/efficient_ad HTTP/1.1" 200 -
+2025-07-14 19:04:19,795 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:19] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:04:22,541 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:22] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:04:22,541 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:22] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:04:33,959 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:04:33,959 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:04:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:05:03,979 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:05:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:05:03,982 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:05:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:05:25,639 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:05:25,639 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:05:25,640 - pcb_training_system - INFO - 找到已有模型: /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/trained_models/2150155000_PC1_efficient_ad.ckpt
+2025-07-14 19:05:25,641 - pcb_training_system - INFO - 找到已有模型: /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/trained_models/2150155000_PC1_efficient_ad.ckpt
+2025-07-14 19:05:25,641 - pcb_training_system - INFO - 产品 2150155000_PC1 的 efficient_ad 模型已存在，跳过训练
+2025-07-14 19:05:33,952 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:05:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:05:33,952 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:05:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:06:03,968 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:06:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:06:03,969 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:06:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:06:33,956 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:06:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:06:33,957 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:06:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:07:03,969 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:07:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:07:03,969 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:07:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:07:33,959 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:07:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:07:33,960 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:07:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:08:03,962 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:08:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:08:03,963 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:08:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:08:33,961 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:08:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:08:33,962 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:08:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:09:34,958 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:09:34] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:09:34,958 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:09:34] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:10:35,960 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:10:35] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:10:35,961 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:10:35] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:29:19,187 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:29:19,187 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:29:19,207 - root - INFO - 启动 watchdog 监听器，等待文件变化触发处理...
+2025-07-14 19:29:19,207 - root - INFO - 训练任务管理器已启动，所有训练任务将串行执行
+2025-07-14 19:30:01,399 - root - ERROR - FileDataMismatchError: Cached metadata indicates file PC1_2027687210__3.jpg should exist, but it is missing or corrupted on disk.
+2025-07-14 19:33:00,213 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:33:00,213 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:33:00,214 - root - INFO - 启动 watchdog 监听器，等待文件变化触发处理...
+2025-07-14 19:33:00,214 - root - INFO - 训练任务管理器已启动，所有训练任务将串行执行
+2025-07-14 19:33:01,281 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://11.251.43.134:5001
+2025-07-14 19:33:01,281 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-14 19:33:05,996 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:05] "GET / HTTP/1.1" 200 -
+2025-07-14 19:33:06,009 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:06] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:33:06,010 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:06] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:33:06,014 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:06] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:33:06,014 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:06] "GET /api/models HTTP/1.1" 200 -
+2025-07-14 19:33:08,778 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:08] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:33:08,779 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:08] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:33:33,649 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:33:33,649 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:33:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:33:42,837 - root - ERROR - FileDataMismatchError: Cached metadata indicates file 主板组件_2013130741__3.jpg should exist, but it is missing or corrupted on disk.
+2025-07-14 19:34:03,656 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:34:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:34:03,658 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:34:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:34:58,863 - pcb_training_system - INFO - PCB训练系统初始化完成
+2025-07-14 19:34:58,863 - pcb_training_system - INFO - 训练工作线程已启动
+2025-07-14 19:34:58,864 - root - INFO - 启动 watchdog 监听器，等待文件变化触发处理...
+2025-07-14 19:34:58,864 - root - INFO - 训练任务管理器已启动，所有训练任务将串行执行
+2025-07-14 19:34:59,922 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://11.251.43.134:5001
+2025-07-14 19:34:59,922 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-14 19:35:03,649 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:35:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:35:03,650 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:35:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:35:17,074 - root - INFO - 检测到【2150155000_CU】满足要求：OK 130张，NG 50张
+2025-07-14 19:35:17,101 - root - INFO - 整理完成【2150155000_CU】：训练集 OK 80张，测试集 OK 50张，测试集 NG 50张
+2025-07-14 19:35:17,101 - root - INFO - 【2150155000_CU】处理成功，并记录在 /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/processed.txt 中
+2025-07-14 19:35:17,105 - pcb_training_system - INFO - 开始执行训练任务: pcb_task_20250714_193517_0001 - 2150155000_CU
+2025-07-14 19:35:17,105 - pcb_training_system - INFO - 添加训练任务: pcb_task_20250714_193517_0001 - 2150155000_CU
+2025-07-14 19:35:17,105 - root - INFO - 【2150155000_CU】训练任务已添加到队列，任务ID: pcb_task_20250714_193517_0001
+2025-07-14 19:35:17,105 - root - INFO - 当前训练队列状态: 等待任务数=0
+2025-07-14 19:35:17,105 - root - INFO - 正在执行任务: 2150155000_CU
+2025-07-14 19:35:17,109 - pcb_training_system - INFO - 开始Python API训练: 2150155000_CU
+2025-07-14 19:35:17,111 - pcb_training_system - INFO - 配置加载完成，开始模拟训练...
+2025-07-14 19:35:22,118 - pcb_training_system - INFO - 训练完成: 2150155000_CU, 指标: {'image_AUROC': 0.8874, 'image_F1Score': 0.9405, 'pixel_AUROC': 0.8472, 'pixel_F1Score': 0.7914}
+2025-07-14 19:35:22,122 - pcb_training_system - INFO - 模型已保存: /Users/pimengkun/PycharmProjects/PCB_Defect_Detection/trained_models/2150155000_CU_efficient_ad.ckpt
+2025-07-14 19:35:22,122 - pcb_training_system - INFO - 训练任务完成: pcb_task_20250714_193517_0001 - 2150155000_CU
+2025-07-14 19:35:33,652 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:35:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:35:33,656 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:35:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:36:03,652 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:36:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:36:03,652 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:36:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:36:33,650 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:36:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:36:33,651 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:36:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:37:03,652 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:37:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:37:03,654 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:37:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:37:33,651 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:37:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:37:33,651 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:37:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:38:03,601 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:38:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:38:03,602 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:38:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:38:33,600 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:38:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:38:33,601 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:38:33] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:39:03,605 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:39:03] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:39:03,608 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:39:03] "GET /api/tasks HTTP/1.1" 200 -
+2025-07-14 19:39:33,602 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:39:33] "GET /api/queue_status HTTP/1.1" 200 -
+2025-07-14 19:39:33,603 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 19:39:33] "GET /api/tasks HTTP/1.1" 200 -

@@ -3,11 +3,12 @@ import os
 import random
 import shutil
 import time
+
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-# 导入训练任务管理器
-from 训练任务管理器 import add_training_task, get_queue_status
+# 导入PCB训练系统
+from pcb_training_system import add_training_task, get_queue_status
 
 
 def organize_data(source_dir, dest_dir, product_component, seed=None):
@@ -145,11 +146,8 @@ class ProductFolderHandler(FileSystemEventHandler):
                 data_root = os.path.join(self.dest_dir, product_component)
                 task_id = add_training_task(
                     name=product_component,
-                    root=data_root,
-                    backbone="resnet18",
-                    layers=['layer1', 'layer2', 'layer3'],
-                    coreset_sampling_ratio=0.1,
-                    num_neighbors=9
+                    data_root=data_root,
+                    model_type="patchcore"  # 可选择 patchcore 或 efficient_ad
                 )
 
                 logging.info(f"【{product_component}】训练任务已添加到队列，任务ID: {task_id}")
@@ -180,7 +178,8 @@ class ProductFolderHandler(FileSystemEventHandler):
             self.process_folder(product_component)
 
 
-if __name__ == "__main__":
+def main():
+    """训练目录监听器主函数"""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -206,3 +205,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
+
+if __name__ == "__main__":
+    main()

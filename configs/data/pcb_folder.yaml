@@ -1,0 +1,24 @@
+class_path: anomalib.data.Folder
+init_args:
+  name: "PCB_Dataset"
+  root: null  # 将在运行时动态设置
+  normal_dir: "train/OK"
+  abnormal_dir: "test/NG"
+  normal_test_dir: "test/OK"
+  mask_dir: null
+  extensions: [".jpg", ".jpeg", ".png", ".bmp"]
+  image_size: [256, 256]
+  train_batch_size: 32
+  eval_batch_size: 32
+  num_workers: 8
+  task: classification
+  train_augmentations: null
+  val_augmentations: null
+  test_augmentations: null
+  augmentations: null
+  test_split_mode: from_dir
+  test_split_ratio: 0.2
+  val_split_mode: same_as_test
+  val_split_ratio: 0.5
+  seed: 42
+

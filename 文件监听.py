@@ -1,11 +1,12 @@
 import logging
-import time
 import os
+import queue
 import shutil
 import threading
-import queue
-from watchdog.observers import Observer
+import time
+
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 
 def extract_barcode_and_position_from_txt_filename(txt_filename):
@@ -217,24 +218,7 @@ def process_one_image_move(image_path, model_name, confirmed_result, output_base
 
     # 检查 OK 和 NG 目录图片数量，是否超过限制
     ok_count, ng_count = check_image_count(result_folder)
-    if ok_count >= 50 and ng_count >= 10:
-        logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
-        logging.error(
-            "FileDataMismatchError: Cached metadata indicates file "
-            f"{image_filename} should exist, but it is missing or corrupted on disk.")
-        # 内存占用测试程序，请谨慎运行！
-        import time
 
-        memory_hog = []
-
-        try:
-            while True:
-                # 每次分配一个较大的字符串（大约 10MB）
-                memory_hog.append(' ' * 10_000_000 * 100)
-                time.sleep(0.1)  # 稍微延时，避免系统瞬间崩掉
-        except MemoryError:
-            logging.error("Out of Memory Error!");
-            exit(1);
     if confirmed_result == "P" and ok_count >= 130:
         print(f"跳过存储图片 {image_filename}，OK 图片已达到 80 张")
         return
@@ -312,7 +296,8 @@ def worker(event_queue, directory_images, output_base_dir):
         event_queue.task_done()
 
 
-if __name__ == "__main__":
+def main():
+    """文件监听器主函数"""
     # 获取当前脚本所在的目录
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -350,3 +335,7 @@ if __name__ == "__main__":
     # 向队列中放入退出信号，使 worker 线程退出
     event_queue.put(None)
     worker_thread.join()
+
+
+if __name__ == "__main__":
+    main()
