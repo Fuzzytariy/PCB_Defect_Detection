@@ -32,11 +32,11 @@ python main.py
 
 ### 3. 训练系统 (`pcb_training_system.py`)
 - 基于Anomalib的异常检测训练
-- 支持PatchCore和EfficientAD模型
+- 支持SuperSimpleNet模型
 - 自动保存训练结果和模型文件
 
-### 4. Web监控界面 (`web_interface.py`)
-- 访问地址：http://localhost:5000
+### 4. Web监控界面 (`web_interface_enhanced.py`)
+- 访问地址：http://localhost:5001
 - 实时监控训练状态
 - 查看训练结果和下载模型
 
@@ -50,10 +50,8 @@ PCB_Defect_Detection/
 ├── data/              # 训练数据目录
 ├── training_results/  # 训练结果输出目录
 ├── trained_models/    # 统一的模型权重存储目录
-│   ├── 产品号_元件名_patchcore.ckpt
-│   ├── 产品号_元件名_patchcore_info.json
-│   ├── 产品号_元件名_efficient_ad.ckpt
-│   └── 产品号_元件名_efficient_ad_info.json
+│   ├── 产品号_元件名_supersimple.ckpt
+│   └── 产品号_元件名_supersimple_info.json
 └── logs/              # 系统日志目录
 ```
 
@@ -84,8 +82,9 @@ BR1_条码号__位置.jpg
 ## 配置文件
 
 ### 模型配置
-- `configs/model/patchcore_pcb.yaml` - PatchCore模型配置
-- `configs/model/efficient_ad_pcb.yaml` - EfficientAD模型配置
+- `configs/model/supersimple_pcb.yaml` - SuperSimpleNet模型配置
+### 触发配置
+- `configs/trigger.yaml` - 训练触发阈值
 
 ### 数据配置
 - `configs/data/pcb_folder.yaml` - 数据加载配置
@@ -100,14 +99,14 @@ from pcb_training_system import add_training_task
 task_id = add_training_task(
     name="产品号_元件名",
     data_root="/path/to/data",
-    model_type="patchcore"  # 或 "efficient_ad"
+    model_type="supersimple"
 )
 
 # 强制重新训练（忽略已有权重）
 task_id = add_training_task(
     name="产品号_元件名",
     data_root="/path/to/data",
-    model_type="patchcore",
+    model_type="supersimple",
     force_retrain=True
 )
 ```
@@ -117,10 +116,10 @@ task_id = add_training_task(
 from pcb_training_system import check_model_exists, get_model_info, list_all_models
 
 # 检查模型是否存在
-exists = check_model_exists("2150155000_PC1", "patchcore")
+exists = check_model_exists("2150155000_PC1", "supersimple")
 
 # 获取特定产品的模型信息
-model_info = get_model_info("2150155000_PC1", "patchcore")
+model_info = get_model_info("2150155000_PC1", "supersimple")
 
 # 获取产品的所有模型
 all_models = get_model_info("2150155000_PC1")  # 返回所有模型类型
@@ -175,10 +174,6 @@ anomalib --help
 - **任务管理**: 完整的训练任务列表
 - **添加任务**: 支持权重检查和强制重训选项
 
-#### 基础版界面 (http://localhost:5000)
-- 实时队列状态
-- 训练任务列表
-- 性能指标展示
 - 模型文件下载
 - 训练日志查看
 

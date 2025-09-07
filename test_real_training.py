@@ -63,7 +63,7 @@ def test_real_training():
     try:
         from anomalib.engine import Engine
         from anomalib.data import Folder
-        from anomalib.models import Patchcore
+        from incremental_supersimple import IncrementalSuperSimpleNet
         print("✓ Anomalib导入成功")
     except ImportError as e:
         print(f"✗ Anomalib导入失败: {e}")
@@ -83,7 +83,6 @@ def test_real_training():
         task_id = add_training_task(
             name=product_name,
             data_root=test_data,
-            model_type="patchcore",
             force_retrain=True  # 强制重新训练
         )
         print(f"✓ 任务已添加: {task_id}")

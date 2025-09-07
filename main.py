@@ -35,16 +35,10 @@ def start_web_interface():
     """启动Web界面"""
     print("启动Web监控界面...")
     try:
-        # 优先使用增强版Web界面
         from web_interface_enhanced import app
         app.run(host='0.0.0.0', port=5001, debug=False, use_reloader=False)
     except Exception as e:
-        print(f"增强版Web界面启动失败，尝试基础版: {e}")
-        try:
-            from web_interface import app
-            app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
-        except Exception as e2:
-            print(f"Web界面启动失败: {e2}")
+        print(f"Web界面启动失败: {e}")
 
 
 def signal_handler(signum, frame):
@@ -132,8 +126,7 @@ def main():
 
     print("\n" + "=" * 60)
     print("系统启动完成！")
-    print("增强版Web监控界面: http://localhost:5001")
-    print("基础版Web监控界面: http://localhost:5000")
+    print("Web监控界面: http://localhost:5001")
     print("按 Ctrl+C 停止系统")
     print("=" * 60)
 

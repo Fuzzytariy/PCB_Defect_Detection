@@ -1,16 +1,9 @@
 model:
-  class_path: anomalib.models.EfficientAd
+  class_path: incremental_supersimple.IncrementalSuperSimpleNet
   init_args:
-    teacher_out_channels: 384
-    model_size: S
-    lr: 0.0001
-    weight_decay: 1.0e-05
-    padding: false
-    pad_maps: true
-
+    beta: 0.1
 trainer:
-  max_epochs: 100
-  max_steps: 10000
+  max_epochs: 1
   accelerator: auto
   devices: 1
   precision: 32
@@ -25,14 +18,6 @@ trainer:
         save_top_k: 1
         filename: "best_model"
         auto_insert_metric_name: false
-    - class_path: lightning.pytorch.callbacks.EarlyStopping
-      init_args:
-        monitor: image_AUROC
-        patience: 10
-        mode: max
-
 logging:
   log_graph: false
-
 seed_everything: 42
-
