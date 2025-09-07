@@ -42,6 +42,7 @@ class TrainingTask:
     error_message: Optional[str] = None
     metrics: Optional[Dict[str, float]] = None
     model_path: Optional[str] = None
+    model_params: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典格式"""
@@ -116,12 +117,22 @@ class PCBTrainingSystem:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             return f"pcb_task_{timestamp}_{self._task_counter:04d}"
 
+    def _deep_update(self, d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
+        """递归更新字典"""
+        for k, v in u.items():
+            if isinstance(v, dict) and isinstance(d.get(k), dict):
+                self._deep_update(d[k], v)
+            else:
+                d[k] = v
+        return d
+
     def add_training_task(
         self,
         name: str,
         data_root: str,
-        model_type: str = "patchcore",
-        force_retrain: bool = False
+        model_config_name: str = "supersimple_pcb.yaml",
+        force_retrain: bool = False,
+        model_params: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         添加训练任务
@@ -129,8 +140,9 @@ class PCBTrainingSystem:
         Args:
             name: 任务名称（通常是产品号_元件名）
             data_root: 数据根目录
-            model_type: 模型类型 (patchcore, efficient_ad)
+            model_config_name: 模型配置文件名称（位于 configs/model 下）
             force_retrain: 是否强制重新训练，忽略已有权重
+            model_params: 额外的模型参数，用于覆盖配置文件
 
         Returns:
             任务ID
@@ -139,10 +151,12 @@ class PCBTrainingSystem:
         if not self._validate_data_structure(data_root):
             raise ValueError(f"数据目录结构不正确: {data_root}")
 
+        model_key = Path(model_config_name).stem
+
         # 检查是否已有训练好的权重文件
-        if not force_retrain and self._check_existing_model(name, model_type):
-            self.logger.info(f"产品 {name} 的 {model_type} 模型已存在，跳过训练")
-            return f"existing_model_{name}_{model_type}"
+        if not force_retrain and self._check_existing_model(name, model_key):
+            self.logger.info(f"产品 {name} 的 {model_key} 模型已存在，跳过训练")
+            return f"existing_model_{name}_{model_key}"
 
         # 检查是否已存在相同任务
         existing_task_id = self._find_existing_task(name, data_root)
@@ -157,7 +171,7 @@ class PCBTrainingSystem:
         output_dir = str(self.results_dir / task_id)
 
         # 选择配置文件
-        model_config = f"configs/model/{model_type}_pcb.yaml"
+        model_config = f"configs/model/{model_config_name}"
         data_config = "configs/data/pcb_folder.yaml"
 
         task = TrainingTask(
@@ -167,7 +181,8 @@ class PCBTrainingSystem:
             model_config=model_config,
             data_config=data_config,
             output_dir=output_dir,
-            created_at=datetime.now()
+            created_at=datetime.now(),
+            model_params=model_params
         )
 
         self.tasks[task_id] = task
@@ -206,10 +221,10 @@ class PCBTrainingSystem:
                 return task_id
         return None
 
-    def _check_existing_model(self, name: str, model_type: str) -> bool:
+    def _check_existing_model(self, name: str, model_key: str) -> bool:
         """检查是否已存在训练好的模型权重"""
-        model_file = self.models_dir / f"{name}_{model_type}.ckpt"
-        model_info_file = self.models_dir / f"{name}_{model_type}_info.json"
+        model_file = self.models_dir / f"{name}_{model_key}.ckpt"
+        model_info_file = self.models_dir / f"{name}_{model_key}_info.json"
 
         # 检查模型文件和信息文件是否都存在
         if model_file.exists() and model_info_file.exists():
@@ -234,12 +249,11 @@ class PCBTrainingSystem:
             self.logger.warning(f"任务 {task.name} 没有找到有效的模型文件")
             return
 
-        # 解析模型类型
-        model_type = "patchcore" if "patchcore" in task.model_config.lower() else "efficient_ad"
+        model_key = Path(task.model_config).stem
 
         # 目标文件路径
-        target_model_file = self.models_dir / f"{task.name}_{model_type}.ckpt"
-        target_info_file = self.models_dir / f"{task.name}_{model_type}_info.json"
+        target_model_file = self.models_dir / f"{task.name}_{model_key}.ckpt"
+        target_info_file = self.models_dir / f"{task.name}_{model_key}_info.json"
 
         try:
             # 复制模型文件
@@ -249,7 +263,7 @@ class PCBTrainingSystem:
             # 创建模型信息文件
             model_info = {
                 'name': task.name,
-                'model_type': model_type,
+                'model_type': model_key,
                 'task_id': task.task_id,
                 'created_at': task.completed_at.isoformat() if task.completed_at else datetime.now().isoformat(),
                 'model_path': str(target_model_file),
@@ -269,11 +283,10 @@ class PCBTrainingSystem:
         except Exception as e:
             self.logger.error(f"保存模型失败: {e}")
 
-    def get_model_info(self, name: str, model_type: str = None) -> Optional[Dict[str, Any]]:
+    def get_model_info(self, name: str, model_key: str = None) -> Optional[Dict[str, Any]]:
         """获取指定产品的模型信息"""
-        if model_type:
-            # 获取特定模型类型的信息
-            info_file = self.models_dir / f"{name}_{model_type}_info.json"
+        if model_key:
+            info_file = self.models_dir / f"{name}_{model_key}_info.json"
             if info_file.exists():
                 try:
                     with open(info_file, 'r', encoding='utf-8') as f:
@@ -281,19 +294,30 @@ class PCBTrainingSystem:
                 except Exception as e:
                     self.logger.error(f"读取模型信息失败: {e}")
         else:
-            # 获取所有模型类型的信息
             models = {}
-            for model_type in ['patchcore', 'efficient_ad']:
-                info_file = self.models_dir / f"{name}_{model_type}_info.json"
-                if info_file.exists():
-                    try:
-                        with open(info_file, 'r', encoding='utf-8') as f:
-                            models[model_type] = json.load(f)
-                    except Exception as e:
-                        self.logger.error(f"读取模型信息失败: {e}")
+            pattern = f"{name}_*_info.json"
+            for info_file in self.models_dir.glob(pattern):
+                try:
+                    with open(info_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        model_type = data.get('model_type', info_file.stem)
+                        models[model_type] = data
+                except Exception as e:
+                    self.logger.error(f"读取模型信息失败: {e}")
             return models if models else None
 
         return None
+
+    def list_model_configs(self) -> List[str]:
+        """列出可用的模型配置文件"""
+        model_dir = self.configs_dir / "model"
+        return [f.name for f in model_dir.glob("*.yaml")]
+
+    def load_model_config(self, config_name: str) -> Dict[str, Any]:
+        """加载指定的模型配置文件"""
+        path = self.configs_dir / "model" / config_name
+        with open(path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
 
     def list_all_models(self) -> List[Dict[str, Any]]:
         """列出所有已训练的模型"""
@@ -410,6 +434,10 @@ class PCBTrainingSystem:
         with open(model_config_path, 'r', encoding='utf-8') as f:
             model_config = yaml.safe_load(f)
 
+        # 应用额外的模型参数
+        if task.model_params:
+            self._deep_update(model_config, task.model_params)
+
         # 设置输出目录
         if 'trainer' not in model_config:
             model_config['trainer'] = {}
@@ -430,7 +458,6 @@ class PCBTrainingSystem:
             # 导入anomalib模块
             from anomalib.engine import Engine
             from anomalib.data import Folder
-            from anomalib.models import Patchcore, EfficientAd
             import yaml
             from pathlib import Path
 
@@ -467,10 +494,19 @@ class PCBTrainingSystem:
             model_class_path = model_config['model']['class_path']
             model_init_args = model_config['model']['init_args']
 
-            if 'Patchcore' in model_class_path:
-                model = Patchcore(**model_init_args)
-            elif 'EfficientAd' in model_class_path:
-                model = EfficientAd(**model_init_args)
+            if 'IncrementalSuperSimpleNet' in model_class_path:
+                from incremental_supersimple import IncrementalSuperSimpleNet
+                # 加载旧权重以进行增量学习
+                old_weights = {}
+                model_key = Path(task.model_config).stem
+                old_model_file = self.models_dir / f"{task.name}_{model_key}.ckpt"
+                if old_model_file.exists():
+                    import torch
+                    state = torch.load(old_model_file, map_location='cpu')
+                    state_dict = state.get('state_dict', state)
+                    old_weights = {k: v for k, v in state_dict.items()}
+                model_init_args['old_weights'] = old_weights
+                model = IncrementalSuperSimpleNet(**model_init_args)
             else:
                 raise ValueError(f"不支持的模型类型: {model_class_path}")
 
@@ -680,7 +716,8 @@ class PCBTrainingSystem:
                     completed_at=datetime.fromisoformat(task_data["completed_at"]) if task_data.get("completed_at") else None,
                     error_message=task_data.get("error_message"),
                     metrics=task_data.get("metrics"),
-                    model_path=task_data.get("model_path")
+                    model_path=task_data.get("model_path"),
+                    model_params=task_data.get("model_params")
                 )
                 self.tasks[task.task_id] = task
 
@@ -700,9 +737,15 @@ class PCBTrainingSystem:
 training_system = PCBTrainingSystem()
 
 
-def add_training_task(name: str, data_root: str, model_type: str = "patchcore", force_retrain: bool = False) -> str:
+def add_training_task(
+    name: str,
+    data_root: str,
+    model_config_name: str = "supersimple_pcb.yaml",
+    force_retrain: bool = False,
+    model_params: Optional[Dict[str, Any]] = None
+) -> str:
     """便捷函数：添加训练任务"""
-    return training_system.add_training_task(name, data_root, model_type, force_retrain)
+    return training_system.add_training_task(name, data_root, model_config_name, force_retrain, model_params)
 
 
 def get_task_info(task_id: str) -> Optional[Dict[str, Any]]:
@@ -720,9 +763,9 @@ def get_all_tasks() -> List[Dict[str, Any]]:
     return training_system.get_all_tasks()
 
 
-def get_model_info(name: str, model_type: str = None) -> Optional[Dict[str, Any]]:
+def get_model_info(name: str, model_key: str = None) -> Optional[Dict[str, Any]]:
     """便捷函数：获取模型信息"""
-    return training_system.get_model_info(name, model_type)
+    return training_system.get_model_info(name, model_key)
 
 
 def list_all_models() -> List[Dict[str, Any]]:
@@ -730,9 +773,19 @@ def list_all_models() -> List[Dict[str, Any]]:
     return training_system.list_all_models()
 
 
-def check_model_exists(name: str, model_type: str) -> bool:
+def check_model_exists(name: str, model_key: str) -> bool:
     """便捷函数：检查模型是否存在"""
-    return training_system._check_existing_model(name, model_type)
+    return training_system._check_existing_model(name, model_key)
+
+
+def list_model_configs() -> List[str]:
+    """列出可用的模型配置文件"""
+    return training_system.list_model_configs()
+
+
+def load_model_config(config_name: str) -> Dict[str, Any]:
+    """加载指定模型配置文件"""
+    return training_system.load_model_config(config_name)
 
 
 if __name__ == "__main__":
@@ -750,7 +803,7 @@ if __name__ == "__main__":
     print(f"当前队列状态: {status}")
 
     # 如果有测试数据，可以添加任务
-    # task_id = add_training_task("test_pcb_001", test_data_root, "patchcore")
+    # task_id = add_training_task("test_pcb_001", test_data_root)
     # print(f"添加测试任务: {task_id}")
 
     # 等待一段时间
