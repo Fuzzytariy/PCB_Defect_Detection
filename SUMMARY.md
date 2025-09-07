@@ -61,7 +61,7 @@ PCB文件监听 → 数据整理 → 训练触发 → 模型训练 → 结果记
 - 自动触发训练任务
 - 数据量验证
 
-### 4. Web监控界面 (web_interface.py)
+### 4. Web监控界面 (web_interface_enhanced.py)
 - 实时状态监控
 - 任务管理界面
 - 结果展示和下载
@@ -87,7 +87,7 @@ python main.py
 
 ### Web界面访问
 ```
-http://localhost:5000
+http://localhost:5001
 ```
 
 ## 技术栈

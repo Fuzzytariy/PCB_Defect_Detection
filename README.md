@@ -19,7 +19,7 @@ PCB文件监听 → 数据整理 → 训练目录监听 → 自动训练 → 结
 
 ### 2. 智能训练管理
 - **队列管理**: 自动排队执行训练任务，支持并发控制
-- **配置管理**: 使用Anomalib官方配置文件，支持多种模型
+- **配置管理**: 使用Anomalib配置文件，支持SuperSimpleNet模型
 - **结果记录**: 自动保存训练指标、模型文件和日志
 
 ### 3. 实时监控界面
@@ -33,15 +33,15 @@ PCB文件监听 → 数据整理 → 训练目录监听 → 自动训练 → 结
 PCB_Defect_Detection/
 ├── main.py                     # 主启动脚本
 ├── pcb_training_system.py      # 核心训练系统
-├── web_interface.py            # Web监控界面
+├── web_interface_enhanced.py   # Web监控界面
 ├── 文件监听.py                 # PCB文件监听器
 ├── 训练目录监听.py             # 训练目录监听器
 ├── configs/                    # 配置文件目录
 │   ├── data/
 │   │   └── pcb_folder.yaml     # 数据配置
-│   └── model/
-│       ├── patchcore_pcb.yaml  # PatchCore模型配置
-│       └── efficient_ad_pcb.yaml # EfficientAD模型配置
+│   ├── model/
+│   │   └── supersimple_pcb.yaml # SuperSimpleNet模型配置
+│   └── trigger.yaml            # 训练触发阈值配置
 ├── txt标注/                    # TXT标注文件目录
 ├── 图片数据/                   # 原始图片数据目录
 ├── output/                     # 整理后的数据目录
@@ -80,10 +80,10 @@ python main.py
 ```
 
 系统将自动启动以下组件：
-- PCB文件监听器
-- 训练目录监听器
-- 训练任务管理器
-- Web监控界面 (http://localhost:5000)
+ - PCB文件监听器
+ - 训练目录监听器
+ - 训练任务管理器
+ - Web监控界面 (http://localhost:5001)
 
 ### 2. 单独使用训练系统
 ```python
@@ -93,7 +93,7 @@ from pcb_training_system import add_training_task
 task_id = add_training_task(
     name="产品号_元件名",
     data_root="/path/to/data",
-    model_type="patchcore"  # 或 "efficient_ad"
+    model_type="supersimple"
 )
 ```
 
@@ -110,8 +110,7 @@ data_root/
 ## 配置说明
 
 ### 1. 模型配置
-- **PatchCore**: 适用于纹理异常检测，训练速度快
-- **EfficientAD**: 适用于复杂异常检测，精度较高
+- **SuperSimpleNet**: 适用于快速增量训练
 
 ### 2. 数据配置
 - 图片尺寸: 256x256 (可调整)
@@ -125,7 +124,7 @@ data_root/
 
 ## Web界面功能
 
-访问 http://localhost:5000 查看：
+访问 http://localhost:5001 查看：
 
 1. **队列状态**: 当前训练任务和等待队列
 2. **任务列表**: 所有训练任务的状态和结果
