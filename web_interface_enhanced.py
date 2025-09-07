@@ -9,7 +9,8 @@ from flask import Flask, render_template, jsonify, request, send_file
 
 from pcb_training_system import (
     get_all_tasks, get_queue_status, add_training_task,
-    get_model_info, list_all_models, check_model_exists
+    get_model_info, list_all_models, check_model_exists,
+    list_model_configs
 )
 
 app = Flask(__name__)
@@ -69,6 +70,16 @@ def api_models():
         }), 500
 
 
+@app.route('/api/model_configs')
+def api_model_configs():
+    """获取可用的模型配置文件列表"""
+    try:
+        configs = list_model_configs()
+        return jsonify({'success': True, 'data': configs})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/add_task', methods=['POST'])
 def api_add_task():
     """手动添加训练任务"""
@@ -76,7 +87,8 @@ def api_add_task():
         data = request.get_json()
         name = data.get('name')
         data_root = data.get('data_root')
-        model_type = data.get('model_type', 'patchcore')
+        model_config = data.get('model_config', 'supersimple_pcb.yaml')
+        model_params = data.get('model_params')
         force_retrain = data.get('force_retrain', False)
 
         if not name or not data_root:
@@ -85,15 +97,7 @@ def api_add_task():
                 'error': '缺少必要参数'
             }), 400
 
-        # 检查模型是否已存在
-        if not force_retrain and check_model_exists(name, model_type):
-            return jsonify({
-                'success': False,
-                'error': f'模型 {name}_{model_type} 已存在，如需重新训练请勾选"强制重新训练"',
-                'model_exists': True
-            }), 400
-
-        task_id = add_training_task(name, data_root, model_type, force_retrain)
+        task_id = add_training_task(name, data_root, model_config, force_retrain, model_params)
         return jsonify({
             'success': True,
             'data': {'task_id': task_id}
@@ -105,14 +109,14 @@ def api_add_task():
         }), 500
 
 
-@app.route('/api/check_model/<name>/<model_type>')
-def api_check_model(name, model_type):
+@app.route('/api/check_model/<name>/<model_key>')
+def api_check_model(name, model_key):
     """检查模型是否存在"""
     try:
-        exists = check_model_exists(name, model_type)
+        exists = check_model_exists(name, model_key)
         model_info = None
         if exists:
-            model_info = get_model_info(name, model_type)
+            model_info = get_model_info(name, model_key)
 
         return jsonify({
             'success': True,
@@ -128,11 +132,11 @@ def api_check_model(name, model_type):
         }), 500
 
 
-@app.route('/api/download_trained_model/<name>/<model_type>')
-def api_download_trained_model(name, model_type):
+@app.route('/api/download_trained_model/<name>/<model_key>')
+def api_download_trained_model(name, model_key):
     """下载已训练的模型"""
     try:
-        model_info = get_model_info(name, model_type)
+        model_info = get_model_info(name, model_key)
         if not model_info or not model_info.get('model_path'):
             return jsonify({
                 'success': False,
@@ -149,7 +153,7 @@ def api_download_trained_model(name, model_type):
         return send_file(
             model_path,
             as_attachment=True,
-            download_name=f"{name}_{model_type}_model.ckpt"
+            download_name=f"{name}_{model_key}_model.ckpt"
         )
     except Exception as e:
         return jsonify({
@@ -269,16 +273,17 @@ if __name__ == '__main__':
                         <input type="text" id="data-root" placeholder="例如: /path/to/data/2150155000_PC1" required>
                     </div>
                     <div class="form-group">
-                        <label>模型类型:</label>
-                        <select id="model-type">
-                            <option value="patchcore">PatchCore</option>
-                            <option value="efficient_ad">EfficientAD</option>
-                        </select>
+                        <label>模型配置:</label>
+                        <select id="model-config"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>模型参数(JSON，可选):</label>
+                        <textarea id="model-params" placeholder='例如: {"trainer": {"max_epochs": 5}}'></textarea>
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="force-retrain">
-                            <label for="force-retrain">强制重新训练（忽略已有模型）</label>
+                            <label for="force-retrain">增量训练（继续在已有模型上训练）</label>
                         </div>
                     </div>
                     <button type="button" class="btn btn-info" onclick="checkModelExists()">检查模型是否存在</button>
@@ -319,6 +324,7 @@ if __name__ == '__main__':
             loadRecentTasks();
             loadModels();
             loadAllTasks();
+            loadModelConfigs();
         }
 
         function loadQueueStatus() {
@@ -407,6 +413,24 @@ if __name__ == '__main__':
                 .catch(error => console.error('Error:', error));
         }
 
+        function loadModelConfigs() {
+            fetch('/api/model_configs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const select = document.getElementById('model-config');
+                        select.innerHTML = '';
+                        data.data.forEach(cfg => {
+                            const opt = document.createElement('option');
+                            opt.value = cfg;
+                            opt.textContent = cfg;
+                            select.appendChild(opt);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
         function loadAllTasks() {
             fetch('/api/tasks')
                 .then(response => response.json())
@@ -454,14 +478,15 @@ if __name__ == '__main__':
 
         function checkModelExists() {
             const name = document.getElementById('task-name').value;
-            const modelType = document.getElementById('model-type').value;
+            const modelConfig = document.getElementById('model-config').value;
+            const modelKey = modelConfig.replace('.yaml', '');
 
             if (!name) {
                 alert('请先输入任务名称');
                 return;
             }
 
-            fetch(`/api/check_model/${name}/${modelType}`)
+            fetch(`/api/check_model/${name}/${modelKey}`)
                 .then(response => response.json())
                 .then(data => {
                     const resultDiv = document.getElementById('model-check-result');
@@ -475,7 +500,7 @@ if __name__ == '__main__':
                                     产品: ${modelInfo.name}<br>
                                     模型类型: ${modelInfo.model_type}<br>
                                     创建时间: ${createdAt}<br>
-                                    如需重新训练，请勾选"强制重新训练"选项。
+                                    如需继续训练，请勾选"增量训练"选项。
                                 </div>
                             `;
                         } else {
@@ -503,17 +528,30 @@ if __name__ == '__main__':
                 });
         }
 
-        function downloadTrainedModel(name, modelType) {
-            window.open(`/api/download_trained_model/${name}/${modelType}`, '_blank');
+        function downloadTrainedModel(name, modelKey) {
+            window.open(`/api/download_trained_model/${name}/${modelKey}`, '_blank');
         }
 
         document.getElementById('add-task-form').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            const modelConfig = document.getElementById('model-config').value;
+            const paramsText = document.getElementById('model-params').value;
+            let modelParams = null;
+            if (paramsText.trim()) {
+                try {
+                    modelParams = JSON.parse(paramsText);
+                } catch (err) {
+                    alert('模型参数必须是有效的JSON');
+                    return;
+                }
+            }
+
             const formData = {
                 name: document.getElementById('task-name').value,
                 data_root: document.getElementById('data-root').value,
-                model_type: document.getElementById('model-type').value,
+                model_config: modelConfig,
+                model_params: modelParams,
                 force_retrain: document.getElementById('force-retrain').checked
             };
 
@@ -530,15 +568,7 @@ if __name__ == '__main__':
                     document.getElementById('model-check-result').innerHTML = '';
                     refreshAllData();
                 } else {
-                    if (data.model_exists) {
-                        document.getElementById('model-check-result').innerHTML = `
-                            <div class="alert alert-warning">
-                                <strong>${data.error}</strong>
-                            </div>
-                        `;
-                    } else {
-                        alert('添加失败: ' + data.error);
-                    }
+                    alert('添加失败: ' + data.error);
                 }
             })
             .catch(error => {
