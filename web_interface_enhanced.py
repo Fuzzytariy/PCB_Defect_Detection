@@ -3,6 +3,9 @@ PCB训练系统增强版Web界面
 包含模型管理和权重检查功能
 """
 
+import json
+import os
+import shutil
 from pathlib import Path
 
 from flask import Flask, render_template, jsonify, request, send_file
@@ -11,8 +14,21 @@ from pcb_training_system import (
     get_all_tasks, get_queue_status, add_training_task,
     get_model_info, list_all_models, check_model_exists
 )
+from 训练目录监听 import organize_data
 
 app = Flask(__name__)
+
+THRESHOLD_FILE = Path(__file__).parent / 'thresholds.json'
+
+def load_thresholds():
+    if THRESHOLD_FILE.exists():
+        with open(THRESHOLD_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {'ok': 0.5, 'ng': 0.5}
+
+def save_thresholds(data):
+    with open(THRESHOLD_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 @app.route('/')
@@ -69,40 +85,39 @@ def api_models():
         }), 500
 
 
+@app.route('/api/thresholds', methods=['GET', 'POST'])
+def api_thresholds():
+    try:
+        if request.method == 'GET':
+            return jsonify({'success': True, 'data': load_thresholds()})
+        data = request.get_json() or {}
+        save_thresholds({'ok': data.get('ok', 0.5), 'ng': data.get('ng', 0.5)})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/add_task', methods=['POST'])
 def api_add_task():
-    """手动添加训练任务"""
+    """手动触发训练"""
     try:
         data = request.get_json()
         name = data.get('name')
-        data_root = data.get('data_root')
-        model_type = data.get('model_type', 'patchcore')
-        force_retrain = data.get('force_retrain', False)
+        source_dir = data.get('source_dir')
+        if not name or not source_dir:
+            return jsonify({'success': False, 'error': '缺少必要参数'}), 400
 
-        if not name or not data_root:
-            return jsonify({
-                'success': False,
-                'error': '缺少必要参数'
-            }), 400
-
-        # 检查模型是否已存在
-        if not force_retrain and check_model_exists(name, model_type):
-            return jsonify({
-                'success': False,
-                'error': f'模型 {name}_{model_type} 已存在，如需重新训练请勾选"强制重新训练"',
-                'model_exists': True
-            }), 400
-
-        task_id = add_training_task(name, data_root, model_type, force_retrain)
-        return jsonify({
-            'success': True,
-            'data': {'task_id': task_id}
-        })
+        base_dir = Path(__file__).parent
+        dest_root = base_dir / 'data'
+        data_root = dest_root / name
+        if data_root.exists():
+            shutil.rmtree(data_root)
+        dest_root.mkdir(exist_ok=True)
+        organize_data(source_dir, dest_root, name)
+        task_id = add_training_task(name, str(data_root), 'yolov8', True)
+        return jsonify({'success': True, 'data': {'task_id': task_id}})
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/api/check_model/<name>/<model_type>')
@@ -257,31 +272,27 @@ if __name__ == '__main__':
         <!-- 添加任务 -->
         <div id="add-task" class="tab-content">
             <div class="card">
+                <h2>阈值设置</h2>
+                <div class="form-group">
+                    <label>OK阈值:</label>
+                    <input type="number" step="0.01" id="ok-threshold" required>
+                </div>
+                <div class="form-group">
+                    <label>NG阈值:</label>
+                    <input type="number" step="0.01" id="ng-threshold" required>
+                </div>
+                <button class="btn btn-primary" onclick="saveThresholds()">保存阈值</button>
+                <hr>
                 <h2>手动添加训练任务</h2>
-                <div id="model-check-result"></div>
                 <form id="add-task-form">
                     <div class="form-group">
                         <label>任务名称 (产品号_元件名):</label>
                         <input type="text" id="task-name" placeholder="例如: 2150155000_PC1" required>
                     </div>
                     <div class="form-group">
-                        <label>数据目录:</label>
-                        <input type="text" id="data-root" placeholder="例如: /path/to/data/2150155000_PC1" required>
+                        <label>原始图片目录:</label>
+                        <input type="text" id="source-dir" placeholder="例如: /path/to/output/2150155000_PC1" required>
                     </div>
-                    <div class="form-group">
-                        <label>模型类型:</label>
-                        <select id="model-type">
-                            <option value="patchcore">PatchCore</option>
-                            <option value="efficient_ad">EfficientAD</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="force-retrain">
-                            <label for="force-retrain">强制重新训练（忽略已有模型）</label>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-info" onclick="checkModelExists()">检查模型是否存在</button>
                     <button type="submit" class="btn btn-success">添加任务</button>
                 </form>
             </div>
@@ -452,59 +463,35 @@ if __name__ == '__main__':
                 .catch(error => console.error('Error:', error));
         }
 
-        function checkModelExists() {
-            const name = document.getElementById('task-name').value;
-            const modelType = document.getElementById('model-type').value;
+        function downloadTrainedModel(name, modelType) {
+            window.open(`/api/download_trained_model/${name}/${modelType}`, '_blank');
+        }
 
-            if (!name) {
-                alert('请先输入任务名称');
-                return;
-            }
-
-            fetch(`/api/check_model/${name}/${modelType}`)
-                .then(response => response.json())
+        function loadThresholds() {
+            fetch('/api/thresholds')
+                .then(r => r.json())
                 .then(data => {
-                    const resultDiv = document.getElementById('model-check-result');
                     if (data.success) {
-                        if (data.data.exists) {
-                            const modelInfo = data.data.model_info;
-                            const createdAt = new Date(modelInfo.created_at).toLocaleString();
-                            resultDiv.innerHTML = `
-                                <div class="alert alert-warning">
-                                    <strong>模型已存在！</strong><br>
-                                    产品: ${modelInfo.name}<br>
-                                    模型类型: ${modelInfo.model_type}<br>
-                                    创建时间: ${createdAt}<br>
-                                    如需重新训练，请勾选"强制重新训练"选项。
-                                </div>
-                            `;
-                        } else {
-                            resultDiv.innerHTML = `
-                                <div class="alert alert-success">
-                                    <strong>模型不存在</strong> - 可以进行训练
-                                </div>
-                            `;
-                        }
-                    } else {
-                        resultDiv.innerHTML = `
-                            <div class="alert alert-danger">
-                                检查失败: ${data.error}
-                            </div>
-                        `;
+                        document.getElementById('ok-threshold').value = data.data.ok;
+                        document.getElementById('ng-threshold').value = data.data.ng;
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('model-check-result').innerHTML = `
-                        <div class="alert alert-danger">
-                            检查失败: ${error.message}
-                        </div>
-                    `;
                 });
         }
 
-        function downloadTrainedModel(name, modelType) {
-            window.open(`/api/download_trained_model/${name}/${modelType}`, '_blank');
+        function saveThresholds() {
+            const body = {
+                ok: parseFloat(document.getElementById('ok-threshold').value),
+                ng: parseFloat(document.getElementById('ng-threshold').value)
+            };
+            fetch('/api/thresholds', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    alert('阈值已保存');
+                }
+            });
         }
 
         document.getElementById('add-task-form').addEventListener('submit', function(e) {
@@ -512,9 +499,7 @@ if __name__ == '__main__':
 
             const formData = {
                 name: document.getElementById('task-name').value,
-                data_root: document.getElementById('data-root').value,
-                model_type: document.getElementById('model-type').value,
-                force_retrain: document.getElementById('force-retrain').checked
+                source_dir: document.getElementById('source-dir').value
             };
 
             fetch('/api/add_task', {
@@ -527,18 +512,9 @@ if __name__ == '__main__':
                 if (data.success) {
                     alert('任务添加成功: ' + data.data.task_id);
                     document.getElementById('add-task-form').reset();
-                    document.getElementById('model-check-result').innerHTML = '';
                     refreshAllData();
                 } else {
-                    if (data.model_exists) {
-                        document.getElementById('model-check-result').innerHTML = `
-                            <div class="alert alert-warning">
-                                <strong>${data.error}</strong>
-                            </div>
-                        `;
-                    } else {
-                        alert('添加失败: ' + data.error);
-                    }
+                    alert('添加失败: ' + data.error);
                 }
             })
             .catch(error => {
@@ -548,6 +524,7 @@ if __name__ == '__main__':
         });
 
         // 页面加载时获取数据
+        loadThresholds();
         refreshAllData();
 
         // 每30秒自动刷新概览数据

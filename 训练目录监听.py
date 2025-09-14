@@ -147,7 +147,7 @@ class ProductFolderHandler(FileSystemEventHandler):
                 task_id = add_training_task(
                     name=product_component,
                     data_root=data_root,
-                    model_type="patchcore"  # 可选择 patchcore 或 efficient_ad
+                    model_type="yolov8"  # 使用YOLOv8二分类模型
                 )
 
                 logging.info(f"【{product_component}】训练任务已添加到队列，任务ID: {task_id}")

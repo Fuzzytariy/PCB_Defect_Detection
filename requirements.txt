@@ -1,10 +1,9 @@
 # PCB缺陷检测训练系统依赖包
 
 # 核心框架
-anomalib>=1.0.0
 torch>=2.0.0
 torchvision>=0.15.0
-lightning>=2.0.0
+ultralytics>=8.0.0
 
 # 数据处理
 opencv-python>=4.8.0
