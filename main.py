@@ -35,16 +35,10 @@ def start_web_interface():
     """启动Web界面"""
     print("启动Web监控界面...")
     try:
-        # 优先使用增强版Web界面
         from web_interface_enhanced import app
         app.run(host='0.0.0.0', port=5001, debug=False, use_reloader=False)
     except Exception as e:
-        print(f"增强版Web界面启动失败，尝试基础版: {e}")
-        try:
-            from web_interface import app
-            app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
-        except Exception as e2:
-            print(f"Web界面启动失败: {e2}")
+        print(f"Web界面启动失败: {e}")
 
 
 def signal_handler(signum, frame):
@@ -61,7 +55,7 @@ def main():
     print("系统组件:")
     print("1. PCB文件监听器 - 监听TXT标注文件，自动整理图片数据")
     print("2. 训练目录监听器 - 监听数据目录，自动触发训练任务")
-    print("3. 训练系统 - 基于Anomalib的异常检测模型训练")
+    print("3. 训练系统 - 基于YOLOv8的二分类增量学习")
     print("4. Web监控界面 - 实时监控训练状态和结果")
     print("=" * 60)
 
@@ -75,25 +69,12 @@ def main():
         base_dir / "txt标注",
         base_dir / "图片数据",
         base_dir / "output",
-        base_dir / "data",
-        base_dir / "configs"
+        base_dir / "data"
     ]
 
     for dir_path in required_dirs:
         dir_path.mkdir(exist_ok=True)
         print(f"✓ 目录检查: {dir_path}")
-
-    # 检查配置文件
-    config_files = [
-        base_dir / "configs" / "data" / "pcb_folder.yaml",
-        base_dir / "configs" / "model" / "patchcore_pcb.yaml",
-    ]
-
-    for config_file in config_files:
-        if config_file.exists():
-            print(f"✓ 配置文件: {config_file}")
-        else:
-            print(f"✗ 配置文件缺失: {config_file}")
 
     print("\n启动系统组件...")
 
@@ -132,8 +113,7 @@ def main():
 
     print("\n" + "=" * 60)
     print("系统启动完成！")
-    print("增强版Web监控界面: http://localhost:5001")
-    print("基础版Web监控界面: http://localhost:5000")
+    print("Web监控界面: http://localhost:5001")
     print("按 Ctrl+C 停止系统")
     print("=" * 60)
 
